@@ -84,9 +84,8 @@
         [x] Работаем с зависимостями (dependencies).
 
 ## Dependencies
-- pandas, jupiter-notebook
+- pandas, jupiter-notebook, numpy
 - pyQt6, pygame, tkinter
-- numpy
 - sockets (lowlevel-work)
     - requests (blocking)
     - aiohttp (async)
