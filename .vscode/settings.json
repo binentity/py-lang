@@ -1,0 +1,14 @@
+{
+    "python.autoComplete.extraPaths": [
+
+    ],
+    "editor.quickSuggestions": {
+        "other": "off"
+    },
+    "editor.snippetSuggestions": "none",
+    "editor.acceptSuggestionOnEnter": "off",
+    "editor.acceptSuggestionOnCommitCharacter": false,
+    "editor.suggest.selectionMode": "never",
+    "python.analysis.extraPaths": [],
+    "python.REPL.enableREPLSmartSend": false
+}
