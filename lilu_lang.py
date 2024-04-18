@@ -5,11 +5,14 @@ import threading, subprocess
 import aiohttp as http
 import requests as request
 
-from enum import *
 from pprint import *
 from collections import *
 from bs4 import *
 from socket import *
+
+from entity import *
+
+OP_SEQUENCE = '+-*/%()\0'
 
 def customize_logger():
     grey     = "\x1b[38;20m"
@@ -34,47 +37,9 @@ def customize_logger():
     # return formatter.format(record)
     log.basicConfig(level=log.INFO, format=logger_format)
 
-OP_SEQUENCE = '+-*/%()\0'
-
-class TokenType(Enum):
-    NUM    = 0  # NOTE: MUTABLE MNEMONIC
-
-    ADD    = 1
-    SUB    = 2
-    MUL    = 3
-    DIV    = 4
-    PER    = 5
-
-    LPA    = 6
-    RPA    = 7
-
-    END    = 8
-    NOP    = 9
-
-
-TOKEN_HASH = {
-    'NUM'  : TokenType.NUM,
-
-    '+'    : TokenType.ADD,
-    '-'    : TokenType.SUB,
-    '*'    : TokenType.MUL,
-    '/'    : TokenType.DIV,
-    '%'    : TokenType.PER,
-
-    '('    : TokenType.LPA,
-    ')'    : TokenType.RPA,
-
-    '\0'   : TokenType.END,
-    'NOP'  : TokenType.NOP,
-}
-
-class Token:
-    def __init__(self, token_type: TokenType, src: str):
-        self.token_type = token_type
-        self.src        = src
-
 
 class Lexer:
+
     def __init__(self, src: str):
         self.src              = src
         self.token_collection = []
@@ -118,7 +83,6 @@ class Lexer:
         return 0
     # NOTE: END SIMPLE TOKENIZER.
 
-
     # NOTE: UTILMETHODS.
     def peek(self, relative_position = 0):
         position = self.pos + relative_position
@@ -149,7 +113,51 @@ class Lexer:
         token = Token(token_type, src)
         self.token_collection.append(token)
         return 0
+
     # NOTE: END UTIL METHODS.
+
+
+class Parser:
+
+    def __init__(self, tokens):
+        self.pos        = 0
+        self.tokens     = tokens
+        self.tokens_size = len(tokens)
+
+    def parse(self):
+        return self.additive()
+
+    def additive(self):
+        result = self.primary()
+
+        while True:
+            if self.match(TokenType.ADD):
+                result = BinaryExpression(TokenType.ADD, result, self.primary())
+                continue
+            break
+
+        return result
+
+    def primary(self):
+        current_token: Token = self.get_token()
+
+        if self.match(TokenType.NUM):
+            return NumberExpression(float(current_token.src))
+        raise RuntimeError("Unknown operation")
+
+
+    def get_token(self, relative_position = 0):
+        position = relative_position + self.pos
+        if self.pos < self.tokens_size:
+            return self.tokens[position]
+        return Token(TokenType.END, "")
+
+    def match(self, token_type: TokenType):
+        current_token = self.get_token()
+        if current_token.token_type == token_type:
+            self.pos = self.pos + 1
+            return True
+        return False
 
 
 def main():
@@ -160,14 +168,17 @@ def main():
 
     # NOTE: Debug probe.
 
-    source = '55+1-3*4/1'
-    lexer: Lexer = Lexer(source).tokenize()
+    source = '5+1+10'
+    tokens = Lexer(source).tokenize()
 
     tok: Token = Token(TokenType.NOP, 'NOP')
-    for tok in lexer:
+    for tok in tokens:
         print('| ', tok.token_type, ' -> ', tok.src, ' |', sep='')
 
     # NOTE: End Debug probe.
+
+    result = Parser(tokens).parse()
+    print(result.eval())
 
     return 0
 
