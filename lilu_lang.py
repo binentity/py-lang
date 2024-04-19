@@ -12,8 +12,6 @@ from socket import *
 
 from entity import *
 
-OP_SEQUENCE = '+-*/%()\0'
-
 def customize_logger():
     grey     = "\x1b[38;20m"
     yellow   = "\x1b[33;20m"
@@ -39,17 +37,14 @@ def customize_logger():
 
 
 class Lexer:
-
     def __init__(self, src: str):
         self.src              = src
         self.token_collection = []
         self.pos              = 0
 
-
     # NOTE: SIMPLE TOKENIZER.
     def tokenize(self):
         global OP_SEQUENCE
-
         while self.pos < len(self.src):
             current_char = self.src[self.pos]
 
@@ -84,30 +79,25 @@ class Lexer:
     # NOTE: END SIMPLE TOKENIZER.
 
     # NOTE: UTILMETHODS.
+
     def peek(self, relative_position = 0):
         position = self.pos + relative_position
         source_end = TokenType.END.name
-
         if self.pos >= len(self.src):
             return source_end
-
         return self.src[position]
-
 
     def next_position(self, relative_position = 0):
         self.pos = self.pos + 1 + relative_position
         return self.peek()
 
-
     def back(self, relative_position = 0):
         self.pos = self.pos - 1 + relative_position
         return self.peek()
 
-
     def reset_position(self):
         self.pos = 0
         return 0
-
 
     def add_token(self, token_type: TokenType, src: str):
         token = Token(token_type, src)
@@ -118,7 +108,6 @@ class Lexer:
 
 
 class Parser:
-
     def __init__(self, tokens):
         self.pos        = 0
         self.tokens     = tokens
@@ -128,23 +117,32 @@ class Parser:
         return self.additive()
 
     def additive(self):
-        result = self.primary()
-
+        result = self.multiplicative()
         while True:
             if self.match(TokenType.ADD):
-                result = BinaryExpression(TokenType.ADD, result, self.primary())
+                result = BinaryExpression(TokenType.ADD, result, self.multiplicative())
                 continue
+            if self.match(TokenType.SUB):
+                result = BinaryExpression(TokenType.SUB, result, self.multiplicative())
             break
+        return result
 
+    def multiplicative(self):
+        result = self.primary()
+        while True:
+            if self.match(TokenType.MUL):
+                result = BinaryExpression(TokenType.MUL, result, self.primary())
+                continue
+            if self.match(TokenType.DIV):
+                result = BinaryExpression(TokenType.DIV, result, self.primary())
+            break
         return result
 
     def primary(self):
         current_token: Token = self.get_token()
-
         if self.match(TokenType.NUM):
             return NumberExpression(float(current_token.src))
         raise RuntimeError("Unknown operation")
-
 
     def get_token(self, relative_position = 0):
         position = relative_position + self.pos
@@ -165,16 +163,14 @@ def main():
     log.info(f' => name: {os.name}, platform: {sys.platform} \n')
     # TODO: Info about system and do something.
 
-
     # NOTE: Debug probe.
-
-    source = '5+1+10'
+    source = '5+1+10-1*2'
     tokens = Lexer(source).tokenize()
 
     tok: Token = Token(TokenType.NOP, 'NOP')
+
     for tok in tokens:
         print('| ', tok.token_type, ' -> ', tok.src, ' |', sep='')
-
     # NOTE: End Debug probe.
 
     result = Parser(tokens).parse()
