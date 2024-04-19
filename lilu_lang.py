@@ -21,18 +21,6 @@ def customize_logger():
 
     logger_format = '%(asctime)s - %(name)s - %(levelname)s ' + \
     '%(message)s'
-
-    # FORMATS = {
-    #         log.DEBUG: grey + format + reset,
-    #         log.INFO: grey + format + reset,
-    #         log.WARNING: yellow + format + reset,
-    #         log.ERROR: red + format + reset,
-    #         log.CRITICAL: bold_red + format + reset
-    #     }
-
-    # log_fmt = FORMATS.get(record.levelno)
-    # formatter = log.Formatter(log_fmt)
-    # return formatter.format(record)
     log.basicConfig(level=log.INFO, format=logger_format)
 
 
@@ -42,7 +30,6 @@ class Lexer:
         self.token_collection = []
         self.pos              = 0
 
-    # NOTE: SIMPLE TOKENIZER.
     def tokenize(self):
         global OP_SEQUENCE
         while self.pos < len(self.src):
@@ -76,9 +63,8 @@ class Lexer:
         self.next_position()
 
         return 0
-    # NOTE: END SIMPLE TOKENIZER.
 
-    # NOTE: UTILMETHODS.
+    #NOTE: UTILMETHODS.
 
     def peek(self, relative_position = 0):
         position = self.pos + relative_position
@@ -104,7 +90,7 @@ class Lexer:
         self.token_collection.append(token)
         return 0
 
-    # NOTE: END UTIL METHODS.
+    #NOTE: END UTIL METHODS.
 
 
 class Parser:
@@ -124,6 +110,7 @@ class Parser:
                 continue
             if self.match(TokenType.SUB):
                 result = BinaryExpression(TokenType.SUB, result, self.multiplicative())
+                continue
             break
         return result
 
@@ -135,8 +122,12 @@ class Parser:
                 continue
             if self.match(TokenType.DIV):
                 result = BinaryExpression(TokenType.DIV, result, self.primary())
+                continue
             break
         return result
+
+    def unary(self):
+        pass
 
     def primary(self):
         current_token: Token = self.get_token()
@@ -157,12 +148,7 @@ class Parser:
             return True
         return False
 
-
-def main():
-    customize_logger()
-    log.info(f' => name: {os.name}, platform: {sys.platform} \n')
-    # TODO: Info about system and do something.
-
+def print_debug():
     # NOTE: Debug probe.
     source = '5+1+10-1*2'
     tokens = Lexer(source).tokenize()
@@ -172,10 +158,14 @@ def main():
     for tok in tokens:
         print('| ', tok.token_type, ' -> ', tok.src, ' |', sep='')
     # NOTE: End Debug probe.
-
     result = Parser(tokens).parse()
     print(result.eval())
 
+def main():
+    customize_logger()
+    log.info(f' => name: {os.name}, platform: {sys.platform} \n')
+
+    print_debug()
     return 0
 
 

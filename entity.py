@@ -72,5 +72,11 @@ class BinaryExpression(Expression):
             return self.expr1.eval() * self.expr2.eval()
         elif self.operation == TokenType.DIV:
             return self.expr1.eval() / self.expr2.eval()
+        elif self.operation == TokenType.PER:
+            return self.expr1.eval() % self.expr2.eval()
         else:
             raise RuntimeError(f'Unsupported operation: {self.operation}')
+
+class UnaryExpression(Expression):
+    pass
+
