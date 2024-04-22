@@ -13,24 +13,44 @@ class TokenType(Enum):
     RPA    = 7
     END    = 8
     NOP    = 9
+    HEX    = 10
+    PRINT  = 11
 
 TOKEN_HASH = {
-    'NUM'  : TokenType.NUM,
-    '+'    : TokenType.ADD,
-    '-'    : TokenType.SUB,
-    '*'    : TokenType.MUL,
-    '/'    : TokenType.DIV,
-    '%'    : TokenType.PER,
-    '('    : TokenType.LPA,
-    ')'    : TokenType.RPA,
-    '\0'   : TokenType.END,
-    'NOP'  : TokenType.NOP,
+    'NUM'       : TokenType.NUM,
+    '0x'        : TokenType.HEX,
+    '+'         : TokenType.ADD,
+    '-'         : TokenType.SUB,
+    '*'         : TokenType.MUL,
+    '/'         : TokenType.DIV,
+    '%'         : TokenType.PER,
+    '('         : TokenType.LPA,
+    ')'         : TokenType.RPA,
+    '\0'        : TokenType.END,
+    'NOP'       : TokenType.NOP,
+    'написать'  : TokenType.PRINT
 }
 
 class Token:
     def __init__(self, token_type: TokenType, src: str):
         self.token_type = token_type
         self.src        = src
+
+
+class Statement:
+    def __init__(self):
+        pass
+
+    def exec(self):
+        pass
+
+
+class PrintStatement:
+    def __init__(self, expr):
+        self.expr = expr
+
+    def exec(self):
+        pass
 
 
 class Expression:
@@ -77,6 +97,18 @@ class BinaryExpression(Expression):
         else:
             raise RuntimeError(f'Unsupported operation: {self.operation}')
 
+
 class UnaryExpression(Expression):
-    pass
+    def __init__(self,operation, expr):
+        super().__init__()
+        self.expr = expr
+        self.operation = operation
+
+    def eval(self):
+        if self.operation == TokenType.SUB:
+            return -self.expr.eval()
+        elif self.operation == TokenType.ADD:
+            return self.expr.eval()
+        else:
+            raise RuntimeError(f'Unsupported operation: {self.operation}')
 
